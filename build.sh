@@ -26,7 +26,7 @@ cat <<EOF > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundleExecutable</key>
     <string>${APP_NAME}</string>
     <key>CFBundleIdentifier</key>
-    <string>com.kaibridger.PowerInfo</string>
+    <string>com.apple.PowerInfo</string>
     <key>CFBundleName</key>
     <string>${APP_NAME}</string>
     <key>CFBundlePackageType</key>
