@@ -1,6 +1,8 @@
 # PowerInfo-4-Mac
 A basic software for Macbooks that tells you when your laptop gets unplugged or plugged in.
 
+##Windows version will be made soon!
+
 !PowerInfo has only been tested on M Series Macs!
 
 Screenshots:
