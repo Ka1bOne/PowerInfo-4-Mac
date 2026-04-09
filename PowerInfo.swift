@@ -8,6 +8,12 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupWindow()
         setupPowerMonitoring()
+        setupLowPowerMonitoring()
+        
+        // Test popup on launch to verify UI
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            self.showPopup(state: self.isCurrentlyPluggedIn() ? .plugged : .unplugged)
+        }
         
         // Hide from Dock
         NSApp.setActivationPolicy(.accessory)
@@ -50,32 +56,123 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         self.window = panel
     }
     
-    func showPopup(plugged: Bool) {
+    enum PowerState {
+        case plugged
+        case unplugged
+        case lowPowerOn
+        case lowPowerOff
+        case unpluggedAndLowPower
+        case pluggedAndLowPowerOff
+    }
+    
+    func getBatteryStatus() -> (percentage: Int, isLowPower: Bool, isPlugged: Bool) {
+        let isLowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
+        let isPlugged = isCurrentlyPluggedIn()
+        var percentage = 0
+        
+        guard let blob = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
+              let sources = IOPSCopyPowerSourcesList(blob)?.takeRetainedValue() as? [CFTypeRef] else {
+            return (0, isLowPower, isPlugged)
+        }
+        
+        for source in sources {
+            let description = IOPSGetPowerSourceDescription(blob, source).takeUnretainedValue() as! [String: Any]
+            if let current = description[kIOPSCurrentCapacityKey] as? Int,
+               let max = description[kIOPSMaxCapacityKey] as? Int {
+                percentage = Int((Double(current) / Double(max)) * 100)
+                break
+            }
+        }
+        return (percentage, isLowPower, isPlugged)
+    }
+
+    func showPopup(state: PowerState) {
         guard let window = self.window, let contentView = window.contentView else { return }
         
-        // Clear previous views
+        let iconName: String
+        let text: String
+        
+        switch state {
+        case .plugged:
+            iconName = "powerplug.fill"
+            text = "Plugged In"
+        case .unplugged:
+            iconName = "battery.100"
+            text = "Unplugged"
+        case .lowPowerOn:
+            iconName = "leaf.fill"
+            text = "Low Power Mode On"
+        case .lowPowerOff:
+            iconName = "leaf"
+            text = "Low Power Mode Off"
+        case .unpluggedAndLowPower:
+            iconName = "leaf.fill"
+            text = "Unplugged • Low Power Mode"
+        case .pluggedAndLowPowerOff:
+            iconName = "powerplug.fill"
+            text = "Plugged In • Low Power Off"
+        }
+        
+        // Use wider panel for long combined-state text
+        let isWide = (state == .unpluggedAndLowPower || state == .pluggedAndLowPowerOff)
+        let panelWidth: CGFloat = isWide ? 360 : 250
+        let panelHeight: CGFloat = 250
+        
+        if let screen = NSScreen.main {
+            let screenRect = screen.visibleFrame
+            let x = screenRect.origin.x + (screenRect.width - panelWidth) / 2
+            let y = screenRect.origin.y + 40
+            window.setFrame(NSRect(x: x, y: y, width: panelWidth, height: panelHeight), display: false)
+        }
+        
+        // Rebuild visual effect mask to match new size
+        if let ve = contentView.subviews.first(where: { $0 is NSVisualEffectView }) as? NSVisualEffectView {
+            ve.frame = contentView.bounds
+            ve.maskImage = NSImage(size: ve.bounds.size, flipped: false) { rect in
+                let path = NSBezierPath(roundedRect: rect, xRadius: 20, yRadius: 20)
+                path.fill()
+                return true
+            }
+        }
+        
+        // Clear previous content views
         contentView.subviews.forEach { if !($0 is NSVisualEffectView) { $0.removeFromSuperview() } }
         
         let stack = NSStackView(frame: contentView.bounds.insetBy(dx: 20, dy: 20))
         stack.orientation = .vertical
-        stack.spacing = 15
+        stack.spacing = 8
         stack.alignment = .centerX
         stack.distribution = .fill
         
-        let iconName = plugged ? "powerplug.fill" : "battery.100"
         let config = NSImage.SymbolConfiguration(pointSize: 80, weight: .bold)
         let iconImage = NSImage(systemSymbolName: iconName, accessibilityDescription: nil)?.withSymbolConfiguration(config)
         
         let imageView = NSImageView(image: iconImage!)
-        imageView.contentTintColor = .black // Black icon
+        imageView.contentTintColor = .white
         
-        let textField = NSTextField(labelWithString: plugged ? "Plugged In" : "Unplugged")
-        textField.font = .systemFont(ofSize: 24, weight: .bold)
-        textField.textColor = .black // Black text
+        let textField = NSTextField(labelWithString: text)
+        textField.font = .systemFont(ofSize: 22, weight: .bold)
+        textField.textColor = .white
         textField.alignment = .center
+        
+        // Add status line (Percentage and Low Power Status)
+        let status = getBatteryStatus()
+        var statusParts: [String] = ["\(status.percentage)%"]
+        
+        // Add "Low Power" label if active, even if the main message was Plugged/Unplugged
+        if status.isLowPower {
+            statusParts.append("Low Power")
+        }
+        
+        let statusText = statusParts.joined(separator: " • ")
+        let statusField = NSTextField(labelWithString: statusText)
+        statusField.font = .systemFont(ofSize: 16, weight: .medium)
+        statusField.textColor = status.isLowPower ? .systemYellow : .white.withAlphaComponent(0.8)
+        statusField.alignment = .center
         
         stack.addArrangedSubview(imageView)
         stack.addArrangedSubview(textField)
+        stack.addArrangedSubview(statusField)
         
         contentView.addSubview(stack)
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -86,7 +183,6 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         
         window.alphaValue = 0
         window.makeKeyAndOrderFront(nil)
-        window.center()
         
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.3
@@ -118,15 +214,58 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         lastPowerState = isCurrentlyPluggedIn()
     }
     
-    private var lastPowerState: Bool?
+    func setupLowPowerMonitoring() {
+        // Notification-based monitoring
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("NSProcessInfoLowPowerModeDidChangeNotification"),
+            object: nil,
+            queue: .main
+        ) { _ in
+            self.updateLowPowerStatus()
+        }
+        
+        // Polling-based fallback (every 2 seconds)
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+            self.updateLowPowerStatus()
+        }
+        
+        lastLowPowerState = ProcessInfo.processInfo.isLowPowerModeEnabled
+    }
+    
+    func updateLowPowerStatus() {
+        let currentState = ProcessInfo.processInfo.isLowPowerModeEnabled
+        if lastLowPowerState != currentState {
+            lastLowPowerState = currentState
+            DispatchQueue.main.async {
+                self.showPopup(state: currentState ? .lowPowerOn : .lowPowerOff)
+            }
+        }
+    }
     
     func checkPowerStatus() {
         let currentState = isCurrentlyPluggedIn()
         if lastPowerState != currentState {
             lastPowerState = currentState
-            // Delay slightly to allow the OS to update power source info
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.showPopup(plugged: currentState)
+            // Wait 0.3s so macOS has time to update low power state after cable change
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                let isLowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
+                if currentState {
+                    // Plugged in — check if low power auto-disabled
+                    if !isLowPower && self.lastLowPowerState == true {
+                        self.lastLowPowerState = false
+                        self.showPopup(state: .pluggedAndLowPowerOff)
+                    } else {
+                        self.showPopup(state: .plugged)
+                    }
+                } else {
+                    // Unplugged — check if low power auto-enabled
+                    if isLowPower {
+                        self.lastLowPowerState = true
+                        self.showPopup(state: .unpluggedAndLowPower)
+                    } else {
+                        self.showPopup(state: .unplugged)
+                    }
+                }
             }
         }
     }
@@ -147,6 +286,9 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         }
         return false
     }
+    
+    private var lastPowerState: Bool?
+    private var lastLowPowerState: Bool?
 }
 
 let app = NSApplication.shared
