@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Configuration
 APP_NAME="PowerInfo"
@@ -6,6 +7,9 @@ BUILD_DIR="build"
 CONTENTS_DIR="${BUILD_DIR}/${APP_NAME}.app/Contents"
 MACOS_DIR="${CONTENTS_DIR}/MacOS"
 RESOURCES_DIR="${CONTENTS_DIR}/Resources"
+
+# Kill existing instance if running
+killall "$APP_NAME" 2>/dev/null || true
 
 # Cleanup
 rm -rf "$BUILD_DIR"
@@ -26,7 +30,7 @@ cat <<EOF > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundleExecutable</key>
     <string>${APP_NAME}</string>
     <key>CFBundleIdentifier</key>
-    <string>com.apple.PowerInfo</string>
+    <string>com.user.PowerInfo</string>
     <key>CFBundleName</key>
     <string>${APP_NAME}</string>
     <key>CFBundlePackageType</key>
@@ -34,7 +38,7 @@ cat <<EOF > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>LSMinimumSystemVersion</key>
-    <string>11.0</string>
+    <string>12.0</string>
     <key>LSUIElement</key>
     <true/>
 </dict>
@@ -42,3 +46,5 @@ cat <<EOF > "${CONTENTS_DIR}/Info.plist"
 EOF
 
 echo "Build complete! You can find the app in ${BUILD_DIR}/${APP_NAME}.app"
+# Run the app to test
+open "${BUILD_DIR}/${APP_NAME}.app"
