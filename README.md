@@ -5,6 +5,8 @@ A basic software for Macbooks that tells you when your laptop gets unplugged or 
 
 Check the [Compatibility](./Compatibility.md) document for information about [Compatibility](./Compatibility.md) on certain Macs.
 
-Screenshots:
-<img width="181" height="176" alt="Screenshot 2026-02-26 at 14 27 28" src="https://github.com/user-attachments/assets/accdeba3-5e95-4e95-9849-1c9ee2b689bf" />
-<img width="200" height="174" alt="Screenshot 2026-02-26 at 14 27 18" src="https://github.com/user-attachments/assets/29da8f81-8222-4395-979b-63955639a06c" />
+Here are some screenshots:
+<img width="400" height="400" alt="1" src="https://github.com/user-attachments/assets/8095bbea-abab-425b-be70-9fd3b5cc5784" />
+<img width="400" height="400" alt="2" src="https://github.com/user-attachments/assets/a9bb7f00-fae3-4e00-ab1a-def7f60b67ef" />
+<img width="400" height="400" alt="3" src="https://github.com/user-attachments/assets/8e51a482-fe67-4bff-86a4-bfa19a908e48" />
+<img width="400" height="400" alt="4" src="https://github.com/user-attachments/assets/6a501a78-fb69-4190-9c78-588a91e23ff2" />
