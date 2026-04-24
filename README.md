@@ -1,6 +1,9 @@
 # PowerInfo-4-Mac
 A basic software for Macbooks that tells you when your laptop gets unplugged or plugged in.
 
+![GitHub All Releases](https://img.shields.io/github/downloads/Ka1bOne/PowerInfo-4-Mac/total)
+![GitHub stars](https://img.shields.io/github/stars/Ka1bOne/PowerInfo-4-Mac?style=social)
+
 Check compatibility document for information about compatibility on certain Macs.
 
 Screenshots:
