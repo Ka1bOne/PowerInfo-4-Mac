@@ -4,11 +4,17 @@ import IOKit.ps
 class PowerNotificationApp: NSObject, NSApplicationDelegate {
     var window: NSPanel?
     var timer: Timer?
+    var statusItem: NSStatusItem?
+    var settingsWindow: NSWindow?
+    var lastNotifiedThreshold: Int = 100
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        setupDefaults()
+        setupMenuBar()
         setupWindow()
         setupPowerMonitoring()
         setupLowPowerMonitoring()
+        setupBatteryThresholdMonitoring()
         
         // Test popup on launch to verify UI
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -17,6 +23,91 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         
         // Hide from Dock
         NSApp.setActivationPolicy(.accessory)
+    }
+    
+    func setupDefaults() {
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: "enableThresholdAlerts") == nil {
+            defaults.set(true, forKey: "enableThresholdAlerts")
+        }
+        if defaults.object(forKey: "themePref") == nil {
+            defaults.set(0, forKey: "themePref") // 0: System HUD, 1: Dark, 2: Light
+        }
+    }
+    
+    func setupMenuBar() {
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        if let button = statusItem?.button {
+            button.image = NSImage(systemSymbolName: "bolt.batteryblock.fill", accessibilityDescription: "PowerInfo")
+        }
+        
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ","))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Quit PowerInfo", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        
+        statusItem?.menu = menu
+    }
+    
+    @objc func openSettings() {
+        if settingsWindow == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 300, height: 200),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "PowerInfo Settings"
+            window.center()
+            window.isReleasedWhenClosed = false
+            window.level = .floating
+            
+            let contentView = NSView(frame: window.contentRect(forFrameRect: window.frame))
+            
+            // Threshold toggle
+            let thresholdBtn = NSButton(checkboxWithTitle: "Enable 20% & 10% Battery Alerts", target: self, action: #selector(toggleThreshold(_:)))
+            thresholdBtn.frame = NSRect(x: 20, y: 140, width: 260, height: 20)
+            thresholdBtn.state = UserDefaults.standard.bool(forKey: "enableThresholdAlerts") ? .on : .off
+            contentView.addSubview(thresholdBtn)
+            
+            // Theme selector
+            let themeLabel = NSTextField(labelWithString: "Theme:")
+            themeLabel.isEditable = false
+            themeLabel.isBordered = false
+            themeLabel.backgroundColor = .clear
+            themeLabel.frame = NSRect(x: 20, y: 70, width: 50, height: 20)
+            contentView.addSubview(themeLabel)
+            
+            let themePopup = NSPopUpButton(frame: NSRect(x: 70, y: 65, width: 120, height: 25), pullsDown: false)
+            themePopup.addItems(withTitles: ["System", "Dark", "Light"])
+            themePopup.selectItem(at: UserDefaults.standard.integer(forKey: "themePref"))
+            themePopup.target = self
+            themePopup.action = #selector(themeChanged(_:))
+            contentView.addSubview(themePopup)
+            
+            // Test Notification Button
+            let testBtn = NSButton(title: "Test Notification", target: self, action: #selector(testNotification))
+            testBtn.frame = NSRect(x: 20, y: 20, width: 150, height: 25)
+            contentView.addSubview(testBtn)
+            
+            window.contentView = contentView
+            settingsWindow = window
+        }
+        
+        settingsWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    @objc func toggleThreshold(_ sender: NSButton) {
+        UserDefaults.standard.set(sender.state == .on, forKey: "enableThresholdAlerts")
+    }
+
+    @objc func themeChanged(_ sender: NSPopUpButton) {
+        UserDefaults.standard.set(sender.indexOfSelectedItem, forKey: "themePref")
+    }
+    
+    @objc func testNotification() {
+        showPopup(state: isCurrentlyPluggedIn() ? .plugged : .unplugged)
     }
     
     func setupWindow() {
@@ -43,7 +134,7 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         
         let visualEffect = NSVisualEffectView(frame: panel.contentView!.bounds)
         visualEffect.blendingMode = .behindWindow
-        visualEffect.material = .hudWindow // Light HUD look
+        applyTheme(to: visualEffect)
         visualEffect.state = .active
         visualEffect.maskImage = NSImage(size: visualEffect.bounds.size, flipped: false) { rect in
             let path = NSBezierPath(roundedRect: rect, xRadius: 20, yRadius: 20)
@@ -56,6 +147,18 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         self.window = panel
     }
     
+    func applyTheme(to visualEffect: NSVisualEffectView) {
+        let themePref = UserDefaults.standard.integer(forKey: "themePref")
+        visualEffect.material = .hudWindow
+        if themePref == 1 {
+            visualEffect.appearance = NSAppearance(named: .darkAqua)
+        } else if themePref == 2 {
+            visualEffect.appearance = NSAppearance(named: .aqua)
+        } else {
+            visualEffect.appearance = nil // System Default
+        }
+    }
+    
     enum PowerState {
         case plugged
         case unplugged
@@ -63,6 +166,8 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         case lowPowerOff
         case unpluggedAndLowPower
         case pluggedAndLowPowerOff
+        case battery20
+        case battery10
     }
     
     func getBatteryStatus() -> (percentage: Int, isLowPower: Bool, isPlugged: Bool) {
@@ -91,6 +196,7 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         
         let iconName: String
         let text: String
+        var isAlert = false
         
         switch state {
         case .plugged:
@@ -111,10 +217,17 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         case .pluggedAndLowPowerOff:
             iconName = "powerplug.fill"
             text = "Plugged In • Low Power Off"
+        case .battery20:
+            iconName = "battery.25"
+            text = "20% Battery Remaining"
+            isAlert = true
+        case .battery10:
+            iconName = "battery.0"
+            text = "10% Battery Remaining"
+            isAlert = true
         }
         
-        // Use wider panel for long combined-state text
-        let isWide = (state == .unpluggedAndLowPower || state == .pluggedAndLowPowerOff)
+        let isWide = (state == .unpluggedAndLowPower || state == .pluggedAndLowPowerOff || isAlert)
         let panelWidth: CGFloat = isWide ? 360 : 250
         let panelHeight: CGFloat = 250
         
@@ -125,9 +238,10 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
             window.setFrame(NSRect(x: x, y: y, width: panelWidth, height: panelHeight), display: false)
         }
         
-        // Rebuild visual effect mask to match new size
+        // Rebuild visual effect mask to match new size and apply theme
         if let ve = contentView.subviews.first(where: { $0 is NSVisualEffectView }) as? NSVisualEffectView {
             ve.frame = contentView.bounds
+            applyTheme(to: ve)
             ve.maskImage = NSImage(size: ve.bounds.size, flipped: false) { rect in
                 let path = NSBezierPath(roundedRect: rect, xRadius: 20, yRadius: 20)
                 path.fill()
@@ -148,7 +262,7 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         let iconImage = NSImage(systemSymbolName: iconName, accessibilityDescription: nil)?.withSymbolConfiguration(config)
         
         let imageView = NSImageView(image: iconImage!)
-        imageView.contentTintColor = .white
+        imageView.contentTintColor = isAlert ? .systemRed : .white
         
         let textField = NSTextField(labelWithString: text)
         textField.font = .systemFont(ofSize: 22, weight: .bold)
@@ -159,7 +273,6 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         let status = getBatteryStatus()
         var statusParts: [String] = ["\(status.percentage)%"]
         
-        // Add "Low Power" label if active, even if the main message was Plugged/Unplugged
         if status.isLowPower {
             statusParts.append("Low Power")
         }
@@ -190,7 +303,8 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         }
         
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { _ in
+        let displayDuration = isAlert ? 3.0 : 1.5
+        timer = Timer.scheduledTimer(withTimeInterval: displayDuration, repeats: false) { _ in
             NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.5
                 window.animator().alphaValue = 0
@@ -232,6 +346,32 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         lastLowPowerState = ProcessInfo.processInfo.isLowPowerModeEnabled
     }
     
+    func setupBatteryThresholdMonitoring() {
+        // Check battery level every 30 seconds
+        Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
+            self.checkBatteryThresholds()
+        }
+    }
+    
+    func checkBatteryThresholds() {
+        guard UserDefaults.standard.bool(forKey: "enableThresholdAlerts") else { return }
+        
+        let status = getBatteryStatus()
+        if status.isPlugged {
+            lastNotifiedThreshold = 100 // Reset when plugged in
+            return
+        }
+        
+        let level = status.percentage
+        if level <= 10 && lastNotifiedThreshold > 10 {
+            lastNotifiedThreshold = 10
+            showPopup(state: .battery10)
+        } else if level <= 20 && level > 10 && lastNotifiedThreshold > 20 {
+            lastNotifiedThreshold = 20
+            showPopup(state: .battery20)
+        }
+    }
+    
     func updateLowPowerStatus() {
         let currentState = ProcessInfo.processInfo.isLowPowerModeEnabled
         if lastLowPowerState != currentState {
@@ -250,6 +390,7 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 let isLowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
                 if currentState {
+                    self.lastNotifiedThreshold = 100 // Reset threshold notification state
                     // Plugged in — check if low power auto-disabled
                     if !isLowPower && self.lastLowPowerState == true {
                         self.lastLowPowerState = false
@@ -295,3 +436,4 @@ let app = NSApplication.shared
 let delegate = PowerNotificationApp()
 app.delegate = delegate
 app.run()
+
