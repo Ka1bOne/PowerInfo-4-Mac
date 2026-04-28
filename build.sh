@@ -36,7 +36,7 @@ cat <<EOF > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>1.4.2</string>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSUIElement</key>
@@ -47,4 +47,4 @@ EOF
 
 echo "Build complete! You can find the app in ${BUILD_DIR}/${APP_NAME}.app"
 # Run the app to test
-open "${BUILD_DIR}/${APP_NAME}.app"
+# open "${BUILD_DIR}/${APP_NAME}.app"
