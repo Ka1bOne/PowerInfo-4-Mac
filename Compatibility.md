@@ -12,7 +12,7 @@ Compatible devices:
 
 M Series Macs (M1,M2,M3,M4,M5) - 🟩 Tested, Runs Perfectly
 
-A Series Macs (A18 Pro) - 🟧 Untested, No further info.
+A Series Macs (A18 Pro) - 🟩 Tested, Runs Perfectly
 
 Intel Macs (I3,I5,I7,I9) - 🟧 Untested, Should run fine on Intel Based Macs.
 
