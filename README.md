@@ -3,8 +3,9 @@
 
 A basic software for Macbooks that tells you when your laptop gets unplugged or plugged in.
 
-#PowerInfo 2 (Experimental) is now ready to be downloaded and tested!
-##Please send any bug reports to ka1bone@outlook.com
+# PowerInfo 2 (Experimental) is now ready to be downloaded and tested!
+
+## Please send any bug reports to ka1bone@outlook.com
 
 For any issues please e-mail me at Ka1bOne@outlook.com or make a Pull Request on Github
 
