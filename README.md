@@ -1,5 +1,7 @@
 <img width="600" height="200" alt="PowerInfo 4 Mac" src="https://github.com/user-attachments/assets/9538b4f2-4e66-41ac-a5b2-6aa7aa32c021" />
 
+#PowerInfo 2 (Experimental) is now ready to be downloaded and tested!
+##Please send any bug reports to ka1bone@outlook.com
 
 A basic software for Macbooks that tells you when your laptop gets unplugged or plugged in.
 
