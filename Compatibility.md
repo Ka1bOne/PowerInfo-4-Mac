@@ -10,13 +10,13 @@
 Compatible devices:
 
 
-M Series Macs (M1,M2,M3,M4,M5) - 🟩 Tested, Runs Perfectly
+M Series Macs (M1,M2,M3,M4,M5) - 🟩
 
-A Series Macs (A18 Pro) - 🟩 Tested, Runs Perfectly
+A Series Macs (A18 Pro) - 🟩
 
-Intel Macs (I3,I5,I7,I9) - 🟧 Untested, Should run fine on Intel Based Macs.
+Intel Macs (I3,I5,I7,I9) - 🟧
 
-Macs running MacOS 11 and under - 🟥 Not Compatible, Your Mac should be running MacOS 12 and newer.
+Macs running MacOS 11 and under - 🟥
 
 
 To run the software your Mac must be running MacOS 12 (Montery) 
