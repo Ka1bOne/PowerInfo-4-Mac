@@ -1,4 +1,4 @@
-<img width="600" height="200" alt="PowerInfo 4 Mac" src="https://github.com/user-attachments/assets/9538b4f2-4e66-41ac-a5b2-6aa7aa32c021" />
+<img width="600" height="200" alt="Powerinfo2" src="https://github.com/user-attachments/assets/f9db6d97-f314-499a-84b4-66fe0d022dfa" />
 
 
 A basic software for Macbooks that tells you when your laptop gets unplugged or plugged in.
