@@ -5,4 +5,6 @@ https://github.com/AbrdAbrd/PowerInfo-Windows
 
 PowerInfo for Windows is still in very early development. There is currently one release but is currently very unstable and may not work on your device. 
 
+For any bugs do not contact me, instead please contact AbrdAbrd or create a pull request.
+
 [![Download Now](https://img.shields.io/badge/DOWNLOAD-Latest%20Release-blue?style=for-the-badge&logo=github)](https://github.com/AbrdAbrd/PowerInfo-Windows/releases/latest)
