@@ -8,3 +8,5 @@ PowerInfo for Windows is still in very early development. There is currently one
 For any bugs do not contact me, instead please contact AbrdAbrd or create a pull request.
 
 [![Download Now](https://img.shields.io/badge/DOWNLOAD-Latest%20Release-blue?style=for-the-badge&logo=github)](https://github.com/AbrdAbrd/PowerInfo-Windows/releases/latest)
+
+Copyright (c) 2026 Ka1bOne / MIT License / If there are any issues e-mail at Ka1bOne@outlook.com
