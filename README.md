@@ -1,19 +1,11 @@
 <img width="600" height="200" alt="powerinfo" src="https://github.com/user-attachments/assets/5d05f86f-bff4-4d4f-a88d-816ba8ae6df1" />
 
-
-A basic software for Macbooks that tells you when your laptop gets unplugged or plugged in.
-
 # PowerInfo Legacy has been released!
 
 # PowerInfo for Windows is in development by @AbrdAbrd
 [See more information here](./windows.md)
 
-# PowerInfo Version (2.0.0) has been released!
-[![Download Now](https://img.shields.io/badge/DOWNLOAD-Latest%20Release-blue?style=for-the-badge&logo=github)](https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/latest)
-
 ## Please send any bug reports to ka1bOne@outlook.com
-
-For any issues please e-mail me at Ka1bOne@outlook.com or make a Pull Request on Github
 
 Check the [Compatibility](./Compatibility.md) document for information about [Compatibility](./Compatibility.md) on certain Macs.
 
