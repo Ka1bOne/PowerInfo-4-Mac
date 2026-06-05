@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PowerInfo Settings</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .section-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      margin: 20px 0 8px 0;
+    }
+    .row {
+      margin: 8px 0;
+    }
+    label {
+      display: block;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+    select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 8px 16px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #005a9e;
+    }
+    .separator {
+      height: 1px;
+      background: #ddd;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="section-header">Notifications</div>
+  <div class="row">
+    <label>
+      <input type="checkbox" id="enableThresholdAlerts" />
+      Enable 20% & 10% Battery Alerts
+    </label>
+  </div>
+  <div class="row">
+    <label>
+      <input type="checkbox" id="enableThermalAlerts" />
+      Enable Thermal Alerts
+    </label>
+  </div>
+  <div class="row">
+    <label>
+      <input type="checkbox" id="enableHighPowerAlerts" />
+      Enable High Power Mode Alerts
+    </label>
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="section-header">Appearance</div>
+  <div class="row">
+    <label>
+      Theme:
+      <select id="themePref">
+        <option value="0">System</option>
+        <option value="1">Dark</option>
+        <option value="2">Light</option>
+      </select>
+    </label>
+  </div>
+  <div class="row">
+    <label>
+      HUD Style:
+      <select id="hudStyle">
+        <option value="0">Large HUD</option>
+        <option value="1">Compact Toast</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="section-header">System</div>
+  <div class="row">
+    <label>
+      <input type="checkbox" id="launchAtLogin" />
+      Launch at Login
+    </label>
+  </div>
+
+  <button id="testBtn">Test Notification</button>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    async function loadSettings() {
+      const settings = await ipcRenderer.invoke('get-settings');
+      document.getElementById('enableThresholdAlerts').checked = settings.enableThresholdAlerts;
+      document.getElementById('enableThermalAlerts').checked = settings.enableThermalAlerts;
+      document.getElementById('enableHighPowerAlerts').checked = settings.enableHighPowerAlerts;
+      document.getElementById('themePref').value = String(settings.themePref);
+      document.getElementById('hudStyle').value = String(settings.hudStyle);
+      document.getElementById('launchAtLogin').checked = settings.launchAtLogin;
+    }
+
+    function saveSettings() {
+      const settings = {
+        enableThresholdAlerts: document.getElementById('enableThresholdAlerts').checked,
+        enableThermalAlerts: document.getElementById('enableThermalAlerts').checked,
+        enableHighPowerAlerts: document.getElementById('enableHighPowerAlerts').checked,
+        themePref: parseInt(document.getElementById('themePref').value),
+        hudStyle: parseInt(document.getElementById('hudStyle').value),
+        launchAtLogin: document.getElementById('launchAtLogin').checked
+      };
+      ipcRenderer.invoke('save-settings', settings);
+    }
+
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('change', saveSettings);
+    });
+
+    document.getElementById('testBtn').addEventListener('click', () => {
+      ipcRenderer.invoke('test-notification');
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>

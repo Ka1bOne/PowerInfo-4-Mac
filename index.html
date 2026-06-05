@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PowerInfo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: transparent;
+    }
+    .hud {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      background: rgba(30, 30, 30);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .toast {
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      background: rgba(30, 30, 30);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      gap: 12px;
+    }
+    .stack-vertical {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .icon-large {
+      font-size: 80px;
+    }
+    .title-large {
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .subtitle-large {
+      font-size: 16px;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .icon-small {
+      font-size: 24px;
+    }
+    .title-small {
+      font-size: 14px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <script>
+    const { ipcRenderer, powerMonitor } = require('electron');
+    let timeoutId = null;
+
+    const popupContent = {
+      plugged: { icon: '🔌', text: 'Plugged In', isAlert: false },
+      unplugged: { icon: '🔋', text: 'Unplugged', isAlert: false },
+      lowPowerOn: { icon: '🍃', text: 'Low Power Mode On', isAlert: false },
+      lowPowerOff: { icon: '🍃', text: 'Low Power Mode Off', isAlert: false },
+      battery20: { icon: '🪫', text: '20% Battery Remaining', isAlert: true },
+      battery10: { icon: '🪫', text: '10% Battery Remaining', isAlert: true },
+      highPowerOn: { icon: '⚡', text: 'High Power Mode On', isAlert: false },
+      highPowerOff: { icon: '⚡', text: 'High Power Mode Off', isAlert: false },
+      thermalSerious: { icon: '🌡️', text: 'High System Temperature', isAlert: true },
+      thermalCritical: { icon: '🌡️', text: 'Critical Temperature!', isAlert: true }
+    };
+
+    ipcRenderer.on('show-popup', (event, state, settings, percentage, timeRemaining) => {
+      const container = document.getElementById('container');
+      const content = popupContent[state] || popupContent.plugged;
+
+      if (timeoutId) clearTimeout(timeoutId);
+
+      if (settings.hudStyle === 1) {
+        container.innerHTML = `
+          <div class="toast" style="opacity:0; transition: opacity 0.3s;">
+            <span class="icon-small" style="color: ${content.isAlert ? '#ff4444' : 'white'}">${content.icon}</span>
+            <span class="title-small">${content.text}</span>
+          </div>
+        `;
+        setTimeout(() => {
+          document.querySelector('.toast').style.opacity = '1';
+        }, 10);
+      } else {
+        container.innerHTML = `
+          <div class="hud" style="opacity:0; transition: opacity 0.3s;">
+            <div class="stack-vertical">
+              <span class="icon-large" style="color: ${content.isAlert ? '#ff4444' : 'white'}">${content.icon}</span>
+              <span class="title-large">${content.text}</span>
+              <span class="subtitle-large">${percentage}%${timeRemaining ? ' • ' + timeRemaining : ''}</span>
+            </div>
+          </div>
+        `;
+        setTimeout(() => {
+          document.querySelector('.hud').style.opacity = '1';
+        }, 10);
+      }
+
+      timeoutId = setTimeout(() => {
+        const el = document.querySelector('.hud') || document.querySelector('.toast');
+        if (el) el.style.opacity = '0';
+        setTimeout(() => ipcRenderer.send('hide-popup'), 500);
+      }, content.isAlert ? 3000 : 1500);
+    });
+  </script>
+</body>
+</html>
