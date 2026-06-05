@@ -3,7 +3,7 @@
 
 A basic software for Macbooks that tells you when your laptop gets unplugged or plugged in.
 
-# PowerInfo Legacy for older Macs is in development!
+# PowerInfo Legacy has been released!
 
 # PowerInfo for Windows is in development by @AbrdAbrd
 [See more information here](./windows.md)
