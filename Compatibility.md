@@ -23,3 +23,5 @@ To run the software your Mac must be running MacOS 15 (Sequoia) or newer.
 
 
 \#\#Please note: As newer MacOS versions release, older versions will no longer be able to download newer versions of PowerInfo.
+
+Copyright (c) 2026 Ka1bOne / MIT License / If there are any issues e-mail at Ka1bOne@outlook.com
