@@ -1,0 +1,17 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.powerinfo.windows
+productName: PowerInfo
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+files: []
+electronVersion: 33.4.11
