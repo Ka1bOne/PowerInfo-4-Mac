@@ -1,10 +1,11 @@
 <img width="600" height="200" alt="powerinfo" src="https://github.com/user-attachments/assets/5d05f86f-bff4-4d4f-a88d-816ba8ae6df1" />
 
+# Development on PowerInfo has been paused as I work on another project. @AbrdAbrd will still be developing PowerInfo Legacy and PowerInfo for Windows.
+
+
 A simple software for Macs (and soon Windows devices) that gives you notification popups when your power mode changes.
 
 The newest versions of PowerInfo will only work on macs running MacOS 15 or newer. If you wish to run this app on an older Mac you must download the Legacy version.
-
-# We understand that PowerInfo Legacy 1.5 is not working propperly. We are working hard to fix any bugs.
 
 [![GitHub Release (latest by date)](https://img.shields.io/github/v/release/Ka1bOne/PowerInfo-4-Mac)](https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/latest)
 [![Download Legacy Version](https://img.shields.io/badge/Download-LEGACY__1.5-blue)](https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/tag/LEGACY_1.5)
