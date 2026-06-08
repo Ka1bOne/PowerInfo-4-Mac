@@ -8,7 +8,7 @@ A simple software for Macs (and soon Windows devices) that gives you notificatio
 The newest versions of PowerInfo will only work on macs running MacOS 15 or newer. If you wish to run this app on an older Mac you must download the Legacy version.
 
 [![GitHub Release (latest by date)](https://img.shields.io/github/v/release/Ka1bOne/PowerInfo-4-Mac)](https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/latest)
-[![Download Legacy Version](https://img.shields.io/badge/Download-LEGACY__1.5-blue)](https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/tag/LEGACY_1.5)
+[![Download Legacy Version](https://img.shields.io/badge/Download-LEGACY__1.5.1-blue)](https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/tag/LEGACY_1.5.1)
 
 ## Please send any bug reports to ka1bOne@outlook.com
 
