@@ -1,7 +1,5 @@
 <img width="600" height="200" alt="powerinfo" src="https://github.com/user-attachments/assets/5d05f86f-bff4-4d4f-a88d-816ba8ae6df1" />
 
-# Development on PowerInfo has been paused as I work on another project. @AbrdAbrd will still be developing PowerInfo Legacy and PowerInfo for Windows.
-
 
 A simple software for Macs (and soon Windows devices) that gives you notification popups when your power mode changes.
 
