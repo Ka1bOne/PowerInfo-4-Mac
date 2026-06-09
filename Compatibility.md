@@ -12,7 +12,7 @@ Compatible devices:
 
 M Series Macs (M1,M2,M3,M4,M5) - 🟩
 
-A Series Macs (A18 Pro) - 🟩
+A Series Macs (A18 Pro) - 🟩 (Untested on PowerInfo Version 2.0.0 and newer)
 
 Intel Macs (I3,I5,I7,I9) - 🟩 (Legacy Version Only)
 
