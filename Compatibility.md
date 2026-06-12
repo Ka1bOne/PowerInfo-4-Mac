@@ -18,7 +18,7 @@ Intel Macs (I Series and M Series) - 🟩 (Legacy Version Only)
 
 Macs running MacOS 14 and under - 🟩 (Legacy Version Only)
 
-PowerPC Computers - 🟥
+Windows Version - In Progress
 
 
 Copyright (c) 2026 Ka1bOne / MIT License / If there are any issues e-mail at Ka1bOne@outlook.com
