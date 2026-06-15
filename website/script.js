@@ -108,10 +108,9 @@ function initMobileMenu() {
    4. Dynamic GitHub Releases Fetcher
    ========================================================================== */
 function fetchGitHubReleaseInfo() {
-  const downloadCountEl = document.getElementById('gh-download-count');
   const releaseTagEl = document.getElementById('gh-release-tag');
   
-  if (!downloadCountEl && !releaseTagEl) return;
+  if (!releaseTagEl) return;
   
   const repo = "Ka1bOne/PowerInfo-4-Mac";
   
@@ -126,27 +125,11 @@ function fetchGitHubReleaseInfo() {
       const latestRelease = data[0];
       
       // Update Version Tag
-      if (releaseTagEl && latestRelease.tag_name) {
+      if (latestRelease.tag_name) {
         releaseTagEl.textContent = latestRelease.tag_name;
-      }
-      
-      // Count Total Downloads
-      let totalDownloads = 0;
-      data.forEach(release => {
-        if (release.assets) {
-          release.assets.forEach(asset => {
-            totalDownloads += (asset.download_count || 0);
-          });
-        }
-      });
-      
-      // Update Downloads text
-      if (downloadCountEl && totalDownloads > 0) {
-        downloadCountEl.textContent = `${totalDownloads.toLocaleString()} downloads on GitHub`;
       }
     })
     .catch(err => {
       console.warn("GitHub API error (possibly rate-limited or offline):", err);
-      // Fails silently, leaving default tags in HTML
     });
 }
