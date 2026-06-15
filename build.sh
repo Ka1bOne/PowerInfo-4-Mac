@@ -45,6 +45,10 @@ cat <<EOF > "${CONTENTS_DIR}/Info.plist"
 </plist>
 EOF
 
+# Code sign the compiled app bundle (required on Apple Silicon to prevent 'damaged' errors)
+echo "Ad-hoc signing the application bundle..."
+codesign --force --deep --sign - "${BUILD_DIR}/${APP_NAME}.app"
+
 echo "Build complete! You can find the app in ${BUILD_DIR}/${APP_NAME}.app"
 # Run the app to test
 open "${BUILD_DIR}/${APP_NAME}.app"

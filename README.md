@@ -9,6 +9,16 @@ For any issues please e-mail me at Ka1bOne@outlook.com or make a Pull Request on
 
 Check the [Compatibility](./Compatibility.md) document for information about [Compatibility](./Compatibility.md) on certain Macs.
 
+### Troubleshooting (App "Missing or Damaged" / Quarantine)
+
+Because PowerInfo is an open-source, unsigned application, macOS Gatekeeper may flag the download as "missing or damaged" or block it from opening.
+
+To fix this, open your Terminal and run the following command to strip the quarantine attribute:
+```bash
+xattr -cr /Applications/PowerInfo.app
+```
+Once run, double-click the app to open it normally.
+
 Here are some screenshots:
 
 <img width="200" height="200" alt="1" src="https://github.com/user-attachments/assets/8095bbea-abab-425b-be70-9fd3b5cc5784" />

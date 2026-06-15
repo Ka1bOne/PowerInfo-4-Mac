@@ -217,6 +217,14 @@
                   <p>Open the app. Since it runs as a background system registry listener, verify permissions on the initial popup if prompted by macOS security settings.</p>
                 </div>
               </div>
+              
+              <div class="step-item">
+                <div class="step-number">4</div>
+                <div class="step-details">
+                  <h3>Bypass Quarantine (If Needed)</h3>
+                  <p>If Gatekeeper flags the download as damaged, clear the quarantine attribute by running <code>xattr -cr /Applications/PowerInfo.app</code> in Terminal.</p>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -347,7 +355,7 @@
               </svg>
             </button>
             <div class="faq-answer" id="faq-a-3" aria-labelledby="faq-q-3">
-              Because it runs as an accessory background service, it lacks a standard Dock icon. To quit the application: open macOS Activity Monitor, search for "PowerInfo", select the process, and choose Force Quit.
+              To quit the application cleanly, click the PowerInfo plug/lightning icon in your macOS menu bar and select <strong>Quit PowerInfo</strong>. Alternatively, you can run <code>killall PowerInfo</code> in your Terminal.
             </div>
           </div>
           

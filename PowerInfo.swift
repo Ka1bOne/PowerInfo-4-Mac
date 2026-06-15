@@ -4,11 +4,36 @@ import IOKit.ps
 class PowerNotificationApp: NSObject, NSApplicationDelegate {
     var window: NSPanel?
     var timer: Timer?
+    var statusItem: NSStatusItem?
+    
+    // Settings Keys
+    let keyPosition = "Position"       // 0: Bottom Center, 1: Top Right, 2: Center
+    let keyStyle = "Style"             // 0: Regular HUD, 1: Compact Pill
+    let keyDuration = "Duration"       // Double (seconds)
+    let keyNotifyPlugged = "NotifyPlugged"
+    let keyNotifyUnplugged = "NotifyUnplugged"
+    let keyNotifyLowPower = "NotifyLowPower"
+    let keyNotifyBatteryLow = "NotifyBatteryLow"
+    
+    var durationValueField: NSTextField?
+    var settingsWindow: NSWindow?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Register default user settings
+        UserDefaults.standard.register(defaults: [
+            keyPosition: 0,
+            keyStyle: 0,
+            keyDuration: 1.5,
+            keyNotifyPlugged: true,
+            keyNotifyUnplugged: true,
+            keyNotifyLowPower: true,
+            keyNotifyBatteryLow: true
+        ])
+        
         setupWindow()
         setupPowerMonitoring()
         setupLowPowerMonitoring()
+        setupStatusItem()
         
         // Test popup on launch to verify UI
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -17,6 +42,226 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
         
         // Hide from Dock
         NSApp.setActivationPolicy(.accessory)
+    }
+    
+    func setupStatusItem() {
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        
+        if let button = statusItem?.button {
+            let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+            if let image = NSImage(systemSymbolName: "powerplug", accessibilityDescription: "PowerInfo")?.withSymbolConfiguration(config) {
+                button.image = image
+            } else {
+                button.title = "⚡️"
+            }
+        }
+        
+        setupMenu()
+    }
+    
+    func setupMenu() {
+        let menu = NSMenu()
+        
+        let titleItem = NSMenuItem(title: "PowerInfo v1.0", action: nil, keyEquivalent: "")
+        titleItem.isEnabled = false
+        menu.addItem(titleItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        let settingsItem = NSMenuItem(title: "Settings...", action: #selector(showSettingsWindow), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+        
+        let testItem = NSMenuItem(title: "Test HUD Notification", action: #selector(triggerTestHUD), keyEquivalent: "t")
+        testItem.target = self
+        menu.addItem(testItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        let quitItem = NSMenuItem(title: "Quit PowerInfo", action: #selector(quitApp), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
+        
+        statusItem?.menu = menu
+    }
+    
+    @objc func showSettingsWindow() {
+        if settingsWindow == nil {
+            createSettingsWindow()
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow?.makeKeyAndOrderFront(nil)
+    }
+    
+    func createSettingsWindow() {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 350),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "PowerInfo Settings"
+        window.center()
+        
+        let container = NSStackView()
+        container.orientation = .vertical
+        container.spacing = 16
+        container.alignment = .leading
+        container.distribution = .fill
+        
+        // 1. Style Choice
+        let styleLabel = NSTextField(labelWithString: "Notification Style:")
+        styleLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        
+        let stylePopUp = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 200, height: 25), pullsDown: false)
+        stylePopUp.addItems(withTitles: ["Regular HUD (Vertical)", "Compact Pill (Horizontal)"])
+        stylePopUp.selectItem(at: UserDefaults.standard.integer(forKey: keyStyle))
+        stylePopUp.target = self
+        stylePopUp.action = #selector(styleChanged(_:))
+        
+        let styleStack = NSStackView()
+        styleStack.orientation = .horizontal
+        styleStack.spacing = 10
+        styleStack.addArrangedSubview(styleLabel)
+        styleStack.addArrangedSubview(stylePopUp)
+        
+        // 2. Position Choice
+        let positionLabel = NSTextField(labelWithString: "Screen Position:")
+        positionLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        
+        let positionPopUp = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 200, height: 25), pullsDown: false)
+        positionPopUp.addItems(withTitles: ["Bottom Center", "Top Right", "Center of Screen"])
+        positionPopUp.selectItem(at: UserDefaults.standard.integer(forKey: keyPosition))
+        positionPopUp.target = self
+        positionPopUp.action = #selector(positionChanged(_:))
+        
+        let positionStack = NSStackView()
+        positionStack.orientation = .horizontal
+        positionStack.spacing = 10
+        positionStack.addArrangedSubview(positionLabel)
+        positionStack.addArrangedSubview(positionPopUp)
+        
+        // 3. Duration Slider
+        let durationLabel = NSTextField(labelWithString: "HUD Display Duration:")
+        durationLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        
+        let durationVal = UserDefaults.standard.double(forKey: keyDuration)
+        let durationSlider = NSSlider(value: durationVal, minValue: 0.5, maxValue: 5.0, target: self, action: #selector(durationChanged(_:)))
+        durationSlider.widthAnchor.constraint(equalToConstant: 160).isActive = true
+        
+        let durationText = NSTextField(labelWithString: String(format: "%.1fs", durationVal))
+        durationText.font = .systemFont(ofSize: 13, weight: .medium)
+        durationText.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        self.durationValueField = durationText
+        
+        let durationStack = NSStackView()
+        durationStack.orientation = .horizontal
+        durationStack.spacing = 10
+        durationStack.alignment = .centerY
+        durationStack.addArrangedSubview(durationLabel)
+        durationStack.addArrangedSubview(durationSlider)
+        durationStack.addArrangedSubview(durationText)
+        
+        // 4. Enabled Notification Events (Checkboxes)
+        let eventsLabel = NSTextField(labelWithString: "Enable Notifications For:")
+        eventsLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        
+        let pluggedCheckbox = NSButton(checkboxWithTitle: "Charger Connected", target: self, action: #selector(eventToggled(_:)))
+        pluggedCheckbox.state = UserDefaults.standard.bool(forKey: keyNotifyPlugged) ? .on : .off
+        pluggedCheckbox.tag = 1
+        
+        let unpluggedCheckbox = NSButton(checkboxWithTitle: "Charger Disconnected", target: self, action: #selector(eventToggled(_:)))
+        unpluggedCheckbox.state = UserDefaults.standard.bool(forKey: keyNotifyUnplugged) ? .on : .off
+        unpluggedCheckbox.tag = 2
+        
+        let lowPowerCheckbox = NSButton(checkboxWithTitle: "Low Power Mode Changes", target: self, action: #selector(eventToggled(_:)))
+        lowPowerCheckbox.state = UserDefaults.standard.bool(forKey: keyNotifyLowPower) ? .on : .off
+        lowPowerCheckbox.tag = 3
+        
+        let batteryLowCheckbox = NSButton(checkboxWithTitle: "Battery Low (≤ 15%)", target: self, action: #selector(eventToggled(_:)))
+        batteryLowCheckbox.state = UserDefaults.standard.bool(forKey: keyNotifyBatteryLow) ? .on : .off
+        batteryLowCheckbox.tag = 4
+        
+        let checkboxesStack = NSStackView()
+        checkboxesStack.orientation = .vertical
+        checkboxesStack.spacing = 6
+        checkboxesStack.alignment = .leading
+        checkboxesStack.addArrangedSubview(pluggedCheckbox)
+        checkboxesStack.addArrangedSubview(unpluggedCheckbox)
+        checkboxesStack.addArrangedSubview(lowPowerCheckbox)
+        checkboxesStack.addArrangedSubview(batteryLowCheckbox)
+        
+        // Add layouts to central container
+        container.addArrangedSubview(styleStack)
+        container.addArrangedSubview(positionStack)
+        container.addArrangedSubview(durationStack)
+        container.addArrangedSubview(eventsLabel)
+        container.addArrangedSubview(checkboxesStack)
+        
+        // Bottom Actions Stack
+        let testBtn = NSButton(title: "Test Active Notification Style", target: self, action: #selector(triggerTestHUD))
+        testBtn.bezelStyle = .rounded
+        
+        let closeBtn = NSButton(title: "Close", target: self, action: #selector(closeSettings))
+        closeBtn.bezelStyle = .rounded
+        
+        let bottomStack = NSStackView()
+        bottomStack.orientation = .horizontal
+        bottomStack.spacing = 10
+        bottomStack.addArrangedSubview(testBtn)
+        bottomStack.addArrangedSubview(closeBtn)
+        
+        container.addArrangedSubview(bottomStack)
+        
+        let view = NSView(frame: window.contentRect(forFrameRect: window.frame))
+        view.addSubview(container)
+        container.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            container.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
+            container.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            container.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            container.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20)
+        ])
+        
+        window.contentView = view
+        self.settingsWindow = window
+    }
+    
+    @objc func styleChanged(_ sender: NSPopUpButton) {
+        UserDefaults.standard.set(sender.indexOfSelectedItem, forKey: keyStyle)
+    }
+    
+    @objc func positionChanged(_ sender: NSPopUpButton) {
+        UserDefaults.standard.set(sender.indexOfSelectedItem, forKey: keyPosition)
+    }
+    
+    @objc func durationChanged(_ sender: NSSlider) {
+        let val = sender.doubleValue
+        UserDefaults.standard.set(val, forKey: keyDuration)
+        durationValueField?.stringValue = String(format: "%.1fs", val)
+    }
+    
+    @objc func eventToggled(_ sender: NSButton) {
+        let isEnabled = (sender.state == .on)
+        switch sender.tag {
+        case 1: UserDefaults.standard.set(isEnabled, forKey: keyNotifyPlugged)
+        case 2: UserDefaults.standard.set(isEnabled, forKey: keyNotifyUnplugged)
+        case 3: UserDefaults.standard.set(isEnabled, forKey: keyNotifyLowPower)
+        case 4: UserDefaults.standard.set(isEnabled, forKey: keyNotifyBatteryLow)
+        default: break
+        }
+    }
+    
+    @objc func closeSettings() {
+        settingsWindow?.close()
+    }
+    
+    @objc func triggerTestHUD() {
+        self.showPopup(state: self.isCurrentlyPluggedIn() ? .plugged : .unplugged)
+    }
+    
+    @objc func quitApp() {
+        NSApp.terminate(nil)
     }
     
     func setupWindow() {
@@ -107,6 +352,27 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
     func showPopup(state: PowerState) {
         guard let window = self.window, let contentView = window.contentView else { return }
         
+        // 1. Check if the notification event is enabled in user preferences
+        let notifyPlugged = UserDefaults.standard.bool(forKey: keyNotifyPlugged)
+        let notifyUnplugged = UserDefaults.standard.bool(forKey: keyNotifyUnplugged)
+        let notifyLowPower = UserDefaults.standard.bool(forKey: keyNotifyLowPower)
+        let notifyBatteryLow = UserDefaults.standard.bool(forKey: keyNotifyBatteryLow)
+        
+        switch state {
+        case .plugged:
+            if !notifyPlugged { return }
+        case .unplugged:
+            if !notifyUnplugged { return }
+        case .lowPowerOn, .lowPowerOff:
+            if !notifyLowPower { return }
+        case .unpluggedAndLowPower:
+            if !notifyUnplugged { return }
+        case .pluggedAndLowPowerOff:
+            if !notifyPlugged { return }
+        case .batteryLow:
+            if !notifyBatteryLow { return }
+        }
+        
         let iconName: String
         let text: String
         let iconColor: NSColor
@@ -142,49 +408,58 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
             iconColor = .systemRed
         }
         
-        // Use wider panel for long combined-state text
+        // 2. Determine layout style (HUD vs Compact Pill) and isWide
         let isWide = (state == .unpluggedAndLowPower || state == .pluggedAndLowPowerOff)
-        let panelWidth: CGFloat = isWide ? 360 : 250
-        let panelHeight: CGFloat = 250
+        let style = UserDefaults.standard.integer(forKey: keyStyle) // 0: Regular HUD, 1: Compact Pill
         
+        let panelWidth: CGFloat
+        let panelHeight: CGFloat
+        
+        if style == 0 { // Regular HUD
+            panelWidth = isWide ? 360 : 250
+            panelHeight = 250
+        } else { // Compact Pill
+            panelWidth = isWide ? 320 : 220
+            panelHeight = 68
+        }
+        
+        // 3. Determine positioning on active display screen
         if let screen = NSScreen.main {
             let screenRect = screen.visibleFrame
-            let x = screenRect.origin.x + (screenRect.width - panelWidth) / 2
-            let y = screenRect.origin.y + 40
+            let x: CGFloat
+            let y: CGFloat
+            
+            let position = UserDefaults.standard.integer(forKey: keyPosition) // 0: Bottom Center, 1: Top Right, 2: Center
+            
+            switch position {
+            case 1: // Top Right
+                x = screenRect.maxX - panelWidth - 40
+                y = screenRect.maxY - panelHeight - 40
+            case 2: // Center
+                x = screenRect.origin.x + (screenRect.width - panelWidth) / 2
+                y = screenRect.origin.y + (screenRect.height - panelHeight) / 2
+            default: // 0: Bottom Center
+                x = screenRect.origin.x + (screenRect.width - panelWidth) / 2
+                y = screenRect.origin.y + 40
+            }
+            
             window.setFrame(NSRect(x: x, y: y, width: panelWidth, height: panelHeight), display: false)
         }
         
-        // Rebuild visual effect mask to match new size
+        // 4. Rebuild visual effect mask to match style corner radius
+        let cornerRadius: CGFloat = (style == 1) ? 34 : 20
         if let ve = contentView.subviews.first(where: { $0 is NSVisualEffectView }) as? NSVisualEffectView {
             ve.frame = contentView.bounds
             ve.maskImage = NSImage(size: ve.bounds.size, flipped: false) { rect in
-                let path = NSBezierPath(roundedRect: rect, xRadius: 20, yRadius: 20)
+                let path = NSBezierPath(roundedRect: rect, xRadius: cornerRadius, yRadius: cornerRadius)
                 path.fill()
                 return true
             }
         }
         
-        // Clear previous content views
+        // 5. Clear previous views and construct the view hierarchy
         contentView.subviews.forEach { if !($0 is NSVisualEffectView) { $0.removeFromSuperview() } }
         
-        let stack = NSStackView(frame: contentView.bounds.insetBy(dx: 20, dy: 20))
-        stack.orientation = .vertical
-        stack.spacing = 8
-        stack.alignment = .centerX
-        stack.distribution = .fill
-        
-        let config = NSImage.SymbolConfiguration(pointSize: 80, weight: .bold)
-        let iconImage = NSImage(systemSymbolName: iconName, accessibilityDescription: nil)?.withSymbolConfiguration(config)
-        
-        let imageView = NSImageView(image: iconImage!)
-        imageView.contentTintColor = iconColor
-        
-        let textField = NSTextField(labelWithString: text)
-        textField.font = .systemFont(ofSize: 22, weight: .bold)
-        textField.textColor = .white
-        textField.alignment = .center
-        
-        // Add status line (Percentage and Low Power Status)
         let status = getBatteryStatus()
         var statusParts: [String] = ["\(status.percentage)%"]
         
@@ -192,25 +467,70 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
             statusParts.append(timeStr)
         }
         
-        // Add "Low Power" label if active, except for states that already explicitly say Low Power
         if status.isLowPower && state != .lowPowerOn && state != .unpluggedAndLowPower {
             statusParts.append("Low Power")
         }
-        
         let statusText = statusParts.joined(separator: " • ")
-        let statusField = NSTextField(labelWithString: statusText)
-        statusField.font = .systemFont(ofSize: 16, weight: .medium)
         
-        if state == .batteryLow {
-            statusField.textColor = .systemRed.withAlphaComponent(0.9)
-        } else {
-            statusField.textColor = status.isLowPower ? .systemYellow : .white.withAlphaComponent(0.8)
+        let stack = NSStackView()
+        
+        if style == 0 { // Regular HUD - Vertical Stack
+            stack.orientation = .vertical
+            stack.spacing = 8
+            stack.alignment = .centerX
+            stack.distribution = .fill
+            
+            let config = NSImage.SymbolConfiguration(pointSize: 80, weight: .bold)
+            let iconImage = NSImage(systemSymbolName: iconName, accessibilityDescription: nil)?.withSymbolConfiguration(config)
+            let imageView = NSImageView(image: iconImage!)
+            imageView.contentTintColor = iconColor
+            
+            let textField = NSTextField(labelWithString: text)
+            textField.font = .systemFont(ofSize: 22, weight: .bold)
+            textField.textColor = .white
+            textField.alignment = .center
+            
+            let statusField = NSTextField(labelWithString: statusText)
+            statusField.font = .systemFont(ofSize: 16, weight: .medium)
+            statusField.textColor = (state == .batteryLow) ? .systemRed.withAlphaComponent(0.9) : (status.isLowPower ? .systemYellow : .white.withAlphaComponent(0.8))
+            statusField.alignment = .center
+            
+            stack.addArrangedSubview(imageView)
+            stack.addArrangedSubview(textField)
+            stack.addArrangedSubview(statusField)
+        } else { // Compact Pill - Horizontal Stack
+            stack.orientation = .horizontal
+            stack.spacing = 14
+            stack.alignment = .centerY
+            stack.distribution = .fill
+            
+            let config = NSImage.SymbolConfiguration(pointSize: 30, weight: .bold)
+            let iconImage = NSImage(systemSymbolName: iconName, accessibilityDescription: nil)?.withSymbolConfiguration(config)
+            let imageView = NSImageView(image: iconImage!)
+            imageView.contentTintColor = iconColor
+            
+            let textStack = NSStackView()
+            textStack.orientation = .vertical
+            textStack.spacing = 2
+            textStack.alignment = .leading
+            textStack.distribution = .fill
+            
+            let textField = NSTextField(labelWithString: text)
+            textField.font = .systemFont(ofSize: 15, weight: .bold)
+            textField.textColor = .white
+            textField.alignment = .left
+            
+            let statusField = NSTextField(labelWithString: statusText)
+            statusField.font = .systemFont(ofSize: 12, weight: .medium)
+            statusField.textColor = (state == .batteryLow) ? .systemRed.withAlphaComponent(0.9) : (status.isLowPower ? .systemYellow : .white.withAlphaComponent(0.8))
+            statusField.alignment = .left
+            
+            textStack.addArrangedSubview(textField)
+            textStack.addArrangedSubview(statusField)
+            
+            stack.addArrangedSubview(imageView)
+            stack.addArrangedSubview(textStack)
         }
-        statusField.alignment = .center
-        
-        stack.addArrangedSubview(imageView)
-        stack.addArrangedSubview(textField)
-        stack.addArrangedSubview(statusField)
         
         contentView.addSubview(stack)
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -227,8 +547,10 @@ class PowerNotificationApp: NSObject, NSApplicationDelegate {
             window.animator().alphaValue = 1.0
         }
         
+        // 6. Schedule timer based on the display duration setting
+        let displayDuration = UserDefaults.standard.double(forKey: keyDuration)
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: displayDuration, repeats: false) { _ in
             NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.5
                 window.animator().alphaValue = 0
