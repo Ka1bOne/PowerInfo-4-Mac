@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Meta Tags -->
+  <title>PowerInfo for Mac — Instant Charger & Low Power HUD Notifications</title>
+  <meta name="description" content="A premium, lightweight background utility for macOS. Get instant HUD notifications when your Macbook charger is plugged in, unplugged, or switches power modes.">
+  <meta name="keywords" content="macOS, MacBook, battery monitor, low power mode, charger status, menu bar, utility app, Swift, open source">
+  <meta name="author" content="Ka1bOne">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PowerInfo for Mac — Instant Charger & Low Power HUD Notifications">
+  <meta property="og:description" content="A premium, lightweight background utility for macOS that notifies you instantly when your charger status changes.">
+  <meta property="og:url" content="https://github.com/Ka1bOne/PowerInfo-4-Mac">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="PowerInfo for Mac — Charger HUD Notifications">
+  <meta property="twitter:description" content="Instant feedback when your MacBook gets plugged in, unplugged, or enters Low Power Mode.">
+
+  <!-- Favicon (Uses high-resolution SVG logo as icon) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%230f172a%22><path d=%22M2 9h4V7H2v2zm14 0h4V7h-4v2zM8 3h8v2H8V3zm0 14h8v-2H8v2zm-2-9v4h12V8H6zm2 2h8v2H8v-2z%22/></svg>">
+
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       Header / Navbar Section
+       ========================================================================== -->
+  <header class="header-wrapper" id="main-header">
+    <div class="container nav-container">
+      <a href="#" class="logo" id="header-logo-link" aria-label="PowerInfo home">
+        <div class="logo-icon" aria-hidden="true">
+          <!-- Logo SVG: Lightning bolt inside rounded battery -->
+          <svg viewBox="0 0 24 24">
+            <path d="M16 20H8v-2h8v2zm0-16H8V2h8v2zm2 1.33v11.34c0 .73-.6 1.33-1.33 1.33H5.33C4.6 17 4 16.4 4 15.67V5.33C4 4.6 4.6 4 5.33 4h11.34c.73 0 1.33.6 1.33 1.33zM11 14l3.5-5.5H11v-3l-3.5 5.5H11v3z"/>
+          </svg>
+        </div>
+        <span>PowerInfo</span>
+      </a>
+      
+      <nav aria-label="Main Navigation">
+        <ul class="nav-menu" id="nav-menu-list">
+          <li><a href="#features" class="nav-link">Features</a></li>
+          <li><a href="#setup" class="nav-link">Setup</a></li>
+          <li><a href="#compatibility" class="nav-link">Compatibility</a></li>
+          <li><a href="#faq" class="nav-link">FAQ</a></li>
+        </ul>
+      </nav>
+      
+      <div class="nav-actions">
+        <a href="https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/latest" class="btn btn-secondary" id="nav-btn-github">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 4px;" aria-hidden="true">
+            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+          </svg>
+          GitHub
+        </a>
+        <a href="https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/latest" class="btn btn-primary" id="nav-btn-download">Download</a>
+      </div>
+      
+      <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle menu" aria-controls="nav-menu-list">☰</button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       Main Content Area
+       ========================================================================== -->
+  <main>
+    
+    <!-- Hero / Introduction Section -->
+    <section class="hero-section" id="hero">
+      <div class="container hero-content">
+        <div class="hero-badge">
+          <span></span> Native macOS Background Utility
+        </div>
+        <h1 class="hero-title text-gradient">Sleek Power Status HUD Notifications for MacBook</h1>
+        <p class="subtitle hero-subtitle">
+          PowerInfo is a lightweight background utility built natively in Swift. It alerts you instantly with a clean, HUD-style overlay when your laptop is plugged in, unplugged, or switches to Low Power Mode.
+        </p>
+        <div class="hero-buttons">
+          <a href="https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/latest" class="btn btn-primary btn-download-hero" id="hero-btn-download">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download Free for macOS
+          </a>
+          <a href="https://github.com/Ka1bOne/PowerInfo-4-Mac" class="btn btn-secondary btn-download-hero" id="hero-btn-code">View Source Code</a>
+        </div>
+        <p id="gh-download-count" style="margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
+          Available for Apple Silicon (M1-M5) and Intel MacBooks
+        </p>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         Features Grid Section
+         ========================================================================== -->
+    <section class="features-section" id="features">
+      <div class="container">
+        <div class="section-header">
+          <h2>Natural, Focused Alerts</h2>
+          <p class="subtitle">A straightforward MacBook utility designed to keep you informed without the clutter of persistent menu bar icons or notification center spam.</p>
+        </div>
+        
+        <div class="features-grid">
+          <!-- Card 1 -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- HUD/Screen symbol -->
+              <svg viewBox="0 0 24 24">
+                <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
+              </svg>
+            </div>
+            <h3>HUD Style Overlay</h3>
+            <p>Appears as a clean, translucent macOS HUD panel (similar to volume/brightness prompts) centered at the bottom of your screen.</p>
+          </div>
+          
+          <!-- Card 2 -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- Charging plug symbol -->
+              <svg viewBox="0 0 24 24">
+                <path d="M16 7h-1.5v-2h-5v2H8c-1.1 0-2 .9-2 2v6h12V9c0-1.1-.9-2-2-2zm-3 11v3h-2v-3h2zm0-6h-2V9h2v3z"/>
+              </svg>
+            </div>
+            <h3>Charger Event Prompts</h3>
+            <p>Triggers instantly the millisecond your power adapter is plugged in or disconnected. Great for tracking loose charging cables.</p>
+          </div>
+          
+          <!-- Card 3 -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- Battery bolt symbol -->
+              <svg viewBox="0 0 24 24">
+                <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v13.33C7 19.4 7.6 20 8.33 20h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM11 16v-4H9l4-6v4h2l-4 6z"/>
+              </svg>
+            </div>
+            <h3>Low Power Monitoring</h3>
+            <p>Receive notifications when macOS Low Power Mode turns on or off, helping you manage performance and background tasks.</p>
+          </div>
+          
+          <!-- Card 4 -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- Low battery warning symbol -->
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+            </div>
+            <h3>Low Battery Alert</h3>
+            <p>Displays a distinct notification when your unplugged MacBook dips to 15% battery life, prompting you to save your progress.</p>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- Dock hide symbol -->
+              <svg viewBox="0 0 24 24">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6v-2h12v2zm0-4H6V5h12v10z"/>
+              </svg>
+            </div>
+            <h3>Accessory App Behavior</h3>
+            <p>Runs as a background accessory service. It does not clutter your Dock space or launch persistent application windows.</p>
+          </div>
+
+          <!-- Card 6 -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- Swift badge/lightning -->
+              <svg viewBox="0 0 24 24">
+                <path d="M9 21h6v-2H9v2zm3-19C6.48 2 2 6.48 2 12c0 2.76 1.12 5.26 2.93 7.07l1.41-1.41C4.96 16.28 4 14.25 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 2.25-.96 4.28-2.34 5.66l1.41 1.41C20.88 17.26 22 14.76 22 12c0-5.52-4.48-10-10-10zm-1 5h2v6h-2V7zm0 8h2v2h-2v-2z"/>
+              </svg>
+            </div>
+            <h3>Efficient Swift Engine</h3>
+            <p>Natively compiled in Swift. Leverages modern macOS IOKit API calls, consuming zero active CPU cycles and minimal memory footprint.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         Setup & Guide Section
+         ========================================================================== -->
+    <section class="setup-section" id="setup">
+      <div class="container">
+        <div class="setup-container">
+          <div class="setup-details-container">
+            <h2>Straightforward Setup</h2>
+            <p class="subtitle" style="margin-bottom: 2rem; text-align: left;">Deploy the native utility to your macOS environment in three quick steps.</p>
+            
+            <div class="setup-steps">
+              <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-details">
+                  <h3>Get the App</h3>
+                  <p>Download the latest compiled release bundle directly from our <a href="https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/latest" style="text-decoration: underline; color: var(--accent);">GitHub Releases page</a>.</p>
+                </div>
+              </div>
+              
+              <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-details">
+                  <h3>Install App Bundle</h3>
+                  <p>Uncompress the ZIP archive and move the <code>PowerInfo.app</code> file into your system <code>/Applications</code> directory.</p>
+                </div>
+              </div>
+              
+              <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-details">
+                  <h3>Launch Background Service</h3>
+                  <p>Open the app. Since it runs as a background system registry listener, verify permissions on the initial popup if prompted by macOS security settings.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="setup-visual">
+            <h3 style="font-size: 1.1rem; font-weight: 600;">System Event Triggers</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              PowerInfo hooks directly into the low-level macOS IOKit registry. Instead of running a background loop that queries battery levels, it stays completely idle until the macOS kernel emits a power change notification.
+            </p>
+            <div class="code-block">
+              <span class="code-comment">// Core event loop registry</span><br>
+              <span class="code-keyword">let</span> runLoopSource = <br>
+              &nbsp;&nbsp;IOPSNotificationCreateRunLoopSource(callback, ...)<br>
+              CFRunLoopAddSource(CFRunLoopGetCurrent(), ...)<br>
+              <br>
+              <span class="code-comment">// Accessory activation policy (hides Dock icon)</span><br>
+              NSApp.setActivationPolicy(.<span class="code-string">accessory</span>)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         Compatibility Section
+         ========================================================================== -->
+    <section class="compatibility-section" id="compatibility">
+      <div class="container">
+        <div class="section-header">
+          <h2>Hardware Compatibility</h2>
+          <p class="subtitle">PowerInfo is optimized for Macbook computers. Check your hardware compatibility profile below.</p>
+        </div>
+        
+        <div class="compatibility-grid">
+          <!-- Card M-Chips -->
+          <div class="compatibility-card">
+            <div class="compat-status-wrapper">
+              <h3 style="font-size: 1.15rem;">Apple Silicon</h3>
+              <span class="compat-badge success">Tested & Compatible</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              Optimized natively for M1, M2, M3, M4, and M5 MacBook Air and MacBook Pro lineups.
+            </p>
+            <ul class="compat-spec-list">
+              <li>MacBook Air M1-M3</li>
+              <li>MacBook Pro M1-M4 Max</li>
+              <li>Zero background performance overhead</li>
+            </ul>
+          </div>
+          
+          <!-- Card Intel Chips -->
+          <div class="compatibility-card">
+            <div class="compat-status-wrapper">
+              <h3 style="font-size: 1.15rem;">Intel Macs</h3>
+              <span class="compat-badge warning">Untested / Compatible</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              Compatible with Intel Core i3, i5, i7, i9 MacBooks running macOS Monterey or newer.
+            </p>
+            <ul class="compat-spec-list">
+              <li>MacBook Pro Intel (2016-2020)</li>
+              <li>MacBook Air Intel (2018-2020)</li>
+              <li>Requires macOS 12+</li>
+            </ul>
+          </div>
+          
+          <!-- Card OS Requirement -->
+          <div class="compatibility-card">
+            <div class="compat-status-wrapper">
+              <h3 style="font-size: 1.15rem;">Operating System</h3>
+              <span class="compat-badge danger">macOS 11 & under unsupported</span>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              Requires API notifications introduced in macOS 12 (Monterey). Check your version under About This Mac.
+            </p>
+            <ul class="compat-spec-list">
+              <li>macOS 12 Monterey (Required)</li>
+              <li>macOS 13 Ventura (Compatible)</li>
+              <li>macOS 14 Sonoma / 15 Sequoia (Compatible)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         FAQ Section
+         ========================================================================== -->
+    <section class="faq-section" id="faq">
+      <div class="container">
+        <div class="section-header">
+          <h2>Frequently Asked Questions</h2>
+          <p class="subtitle">Find answers to common questions regarding how the utility runs and manages power events.</p>
+        </div>
+        
+        <div class="faq-container">
+          <!-- FAQ 1 -->
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" id="faq-q-1">
+              Why isn't this utility on the official Mac App Store?
+              <svg class="faq-icon" viewBox="0 0 24 24">
+                <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+              </svg>
+            </button>
+            <div class="faq-answer" id="faq-a-1" aria-labelledby="faq-q-1">
+              PowerInfo hooks into low-level IOKit system notifications to register instant hardware event updates. Sandbox guidelines for App Store distribution prevent developers from calling these system kernel APIs.
+            </div>
+          </div>
+          
+          <!-- FAQ 2 -->
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" id="faq-q-2">
+              Will this background service drain my battery?
+              <svg class="faq-icon" viewBox="0 0 24 24">
+                <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+              </svg>
+            </button>
+            <div class="faq-answer" id="faq-a-2" aria-labelledby="faq-q-2">
+              No. Unlike other utilities that run continuous checks, PowerInfo remains 100% passive. It consumes no background CPU cycles and only wakes up when macOS alerts the system that a charger connection has changed.
+            </div>
+          </div>
+          
+          <!-- FAQ 3 -->
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" id="faq-q-3">
+              How do I terminate the background app?
+              <svg class="faq-icon" viewBox="0 0 24 24">
+                <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+              </svg>
+            </button>
+            <div class="faq-answer" id="faq-a-3" aria-labelledby="faq-q-3">
+              Because it runs as an accessory background service, it lacks a standard Dock icon. To quit the application: open macOS Activity Monitor, search for "PowerInfo", select the process, and choose Force Quit.
+            </div>
+          </div>
+          
+          <!-- FAQ 4 -->
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" id="faq-q-4">
+              Is the application code safe to audit?
+              <svg class="faq-icon" viewBox="0 0 24 24">
+                <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+              </svg>
+            </button>
+            <div class="faq-answer" id="faq-a-4" aria-labelledby="faq-q-4">
+              Yes, the app is open-source. The entire system loop is fully inspectable in this GitHub repository. The utility communicates with zero outside servers, collects no analytics, and does not require internet permissions.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         Call to Action (CTA) Section
+         ========================================================================== -->
+    <section class="cta-section" id="download">
+      <div class="container">
+        <div class="cta-box">
+          <h2 class="text-gradient">Clean, Native MacBook Power HUD alerts</h2>
+          <p class="subtitle" style="color: var(--text-secondary);">Download PowerInfo for free on GitHub to start receiving elegant, non-disruptive charger notifications today.</p>
+          <a href="https://github.com/Ka1bOne/PowerInfo-4-Mac/releases/latest" class="btn btn-primary btn-download-hero" id="cta-btn-download">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download Free for macOS
+          </a>
+          <span id="gh-release-tag" style="font-size: 0.85rem; font-weight: bold; color: var(--accent);">latest</span>
+        </div>
+      </div>
+    </section>
+    
+  </main>
+
+  <!-- ==========================================================================
+       Footer Section
+       ========================================================================== -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <!-- Logo SVG -->
+          <svg viewBox="0 0 24 24">
+            <path d="M16 20H8v-2h8v2zm0-16H8V2h8v2zm2 1.33v11.34c0 .73-.6 1.33-1.33 1.33H5.33C4.6 17 4 16.4 4 15.67V5.33C4 4.6 4.6 4 5.33 4h11.34c.73 0 1.33.6 1.33 1.33zM11 14l3.5-5.5H11v-3l-3.5 5.5H11v3z"/>
+          </svg>
+          <span>PowerInfo for Mac</span>
+        </div>
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#setup">Setup</a></li>
+          <li><a href="#compatibility">Compatibility</a></li>
+          <li><a href="mailto:Ka1bOne@outlook.com">Contact / Suggestions</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2026 Ka1bOne. MIT License.</p>
+        <p>Suggestions? Reach out at <a href="mailto:Ka1bOne@outlook.com" style="text-decoration: underline;">Ka1bOne@outlook.com</a> or open a pull request on GitHub.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Logic -->
+  <script src="./script.js"></script>
+</body>
+</html>
